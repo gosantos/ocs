@@ -39,9 +39,9 @@ The installer puts `ocs` in `~/.local/bin`, builds the image, and adds a PATH + 
 ```bash
 ocs                     # start opencode in a sandbox
 ocs --continue          # arguments pass through to opencode
-ocs --rebuild           # rebuild the image (newer base + latest opencode)
-ocs-uninstall           # remove everything, keep the image
-ocs-uninstall --remove-image
+ocs rebuild             # rebuild the image (newer base + latest opencode)
+ocs uninstall           # remove everything, image included
+ocs uninstall --keep-image
 ```
 
 Each launch creates a fresh container with `--cap-drop ALL`, `no-new-privileges`, 4 GB RAM, 2 CPUs and 512 PIDs. Nothing is mounted from the host.
@@ -71,7 +71,7 @@ Overrides: `OCS_IMAGE`, `OCS_PREFIX`, `OCS_CONFIG_DIR`, `OCS_CONTEXT`.
 ## Uninstall
 
 ```bash
-ocs-uninstall --remove-image
+ocs uninstall
 ```
 
 Or, without the launcher, run `skills/ocs/scripts/uninstall.sh` from a clone. It removes the launcher, `~/.config/ocs`, and the blocks in `~/.zshrc`, `~/.bashrc`, `~/.bash_profile`, `~/.profile` and the fish config.

@@ -29,7 +29,7 @@ bash scripts/install.sh
 
 It does four things:
 
-1. Copies the launcher to `~/.local/bin/ocs` (and `ocs-uninstall`).
+1. Copies the launcher to `~/.local/bin/ocs`.
 2. Copies the Docker build context to `~/.config/ocs`.
 3. Builds `opencode-sandbox:latest` (~465 MB; most of it is the opencode binary).
 4. Adds an idempotent block to each shell config it finds (see below).
@@ -73,8 +73,8 @@ example `source ~/.zshrc`.
 ## Uninstall
 
 ```bash
-ocs-uninstall              # launcher, build context and shell blocks
-ocs-uninstall --remove-image
+ocs uninstall              # launcher, build context, shell blocks and image
+ocs uninstall --keep-image # keep the ~465 MB image for later
 ```
 
 ## Troubleshooting
@@ -99,10 +99,10 @@ Run `opencode auth login` on the host, then start `ocs` again.
 **A newer opencode or base image is wanted** — rebuild:
 
 ```bash
-ocs --rebuild
+ocs rebuild
 ```
 
-`--rebuild` runs `docker build --pull`, which refreshes the base image and
+`ocs rebuild` runs `docker build --pull`, which refreshes the base image and
 installs the latest opencode release. Pin a version by editing
 `~/.config/ocs/docker/Dockerfile` to pass `--build-arg OPENCODE_VERSION=x.y.z`.
 

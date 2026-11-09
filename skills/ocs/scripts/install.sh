@@ -58,7 +58,8 @@ docker info >/dev/null 2>&1 || fail "the Docker daemon is not running. Start Doc
 say "Installing launcher to $BIN_DIR/ocs"
 mkdir -p "$BIN_DIR" "$CONFIG_DIR/docker"
 install -m 755 "$SCRIPT_DIR/ocs" "$BIN_DIR/ocs"
-install -m 755 "$SCRIPT_DIR/uninstall.sh" "$BIN_DIR/ocs-uninstall"
+rm -f "$BIN_DIR/ocs-uninstall"
+install -m 755 "$SCRIPT_DIR/uninstall.sh" "$CONFIG_DIR/uninstall.sh"
 install -m 644 "$SKILL_DIR/docker/Dockerfile" "$CONFIG_DIR/docker/Dockerfile"
 install -m 755 "$SKILL_DIR/docker/entrypoint.sh" "$CONFIG_DIR/docker/entrypoint.sh"
 
@@ -105,7 +106,7 @@ write_block() {
 
 posix_body() {
   cat <<EOF
-# Added by the ocs installer. Remove with: ocs-uninstall
+# Added by the ocs installer. Remove with: ocs uninstall
 export PATH="$BIN_DIR:\$PATH"
 alias ocs="$BIN_DIR/ocs"
 EOF
@@ -113,7 +114,7 @@ EOF
 
 fish_body() {
   cat <<EOF
-# Added by the ocs installer. Remove with: ocs-uninstall
+# Added by the ocs installer. Remove with: ocs uninstall
 fish_add_path --global --move "$BIN_DIR"
 alias ocs "$BIN_DIR/ocs"
 EOF
