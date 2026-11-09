@@ -1,0 +1,55 @@
+#!/usr/bin/env bash
+# ocs — run opencode in a throwaway Docker sandbox.
+# No host directories are mounted. Credentials are exported from the host with
+# `opencode auth export`, copied into the container, imported, then deleted.
+set -euo pipefail
+
+IMAGE="${OCS_IMAGE:-opencode-sandbox:latest}"
+CONTEXT="${OCS_CONTEXT:-$HOME/.config/ocs/docker}"
+NAME="ocs-$$"
+
+REBUILD=0
+PASSTHRU=()
+for arg in "$@"; do
+  case "$arg" in
+    --rebuild) REBUILD=1 ;;
+    *) PASSTHRU+=("$arg") ;;
+  esac
+done
+
+if [ "$REBUILD" = 1 ]; then
+  printf 'ocs: rebuilding %s from %s ...\n' "$IMAGE" "$CONTEXT" >&2
+  docker build --pull -t "$IMAGE" "$CONTEXT" >&2
+elif ! docker image inspect "$IMAGE" >/dev/null 2>&1; then
+  printf 'ocs: %s not found, building it once ...\n' "$IMAGE" >&2
+  docker build -t "$IMAGE" "$CONTEXT" >&2
+fi
+
+TTY_FLAGS=(-i)
+[ -t 0 ] && TTY_FLAGS+=(-t)
+
+# Isolation: no volumes, no added capabilities, bounded CPU/memory/PIDs.
+docker create "${TTY_FLAGS[@]}" --name "$NAME" \
+  --cap-drop ALL \
+  --security-opt no-new-privileges \
+  --pids-limit 512 --memory 4g --cpus 2 \
+  "$IMAGE" "${PASSTHRU[@]+"${PASSTHRU[@]}"}" >/dev/null
+
+STAGE=$(mktemp -d)
+cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; rm -rf "$STAGE"; }
+trap cleanup EXIT INT TERM
+
+if command -v opencode >/dev/null 2>&1; then
+  umask 077
+  if opencode auth export > "$STAGE/creds.json" 2>/dev/null && [ -s "$STAGE/creds.json" ]; then
+    # uid/gid 1001 = the `dev` user baked into the image
+    COPYFILE_DISABLE=1 tar -c --uid 1001 --gid 1001 -C "$STAGE" creds.json \
+      | docker cp - "$NAME":/home/dev/
+  else
+    printf 'ocs: warning: no credentials exported; the sandbox has no logins\n' >&2
+  fi
+else
+  printf 'ocs: warning: host opencode not found; the sandbox has no logins\n' >&2
+fi
+
+docker start -ai "$NAME"

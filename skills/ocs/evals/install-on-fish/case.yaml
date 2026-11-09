@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: install-on-fish
+expected_outcome: |
+  The ocs launcher is installed and the fish config
+  (~/.config/fish/config.fish or $XDG_CONFIG_HOME/fish/config.fish) contains an
+  ocs block using fish_add_path and an alias. The agent confirms the launcher is
+  reachable in fish rather than assuming a POSIX PATH export works there.

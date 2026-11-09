@@ -1,0 +1,5 @@
+schema_version: "1.1"
+name: install-twice-idempotent
+expected_outcome: |
+  The installer runs twice without failing, ~/.zshrc contains exactly one ocs
+  block with one PATH line and one alias, and the launcher still works.

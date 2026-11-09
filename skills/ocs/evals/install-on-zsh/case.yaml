@@ -1,0 +1,7 @@
+schema_version: "1.1"
+name: install-on-zsh
+expected_outcome: |
+  The ocs launcher is installed at ~/.local/bin/ocs, the Docker image is built,
+  and ~/.zshrc contains one ocs block that puts ~/.local/bin on PATH and aliases
+  ocs to the launcher. The agent verifies the install and tells the user to open
+  a new terminal or source ~/.zshrc.
