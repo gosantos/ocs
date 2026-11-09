@@ -47,12 +47,60 @@ done
 say() { printf '%s\n' "$*"; }
 fail() { printf 'ocs: %s\n' "$*" >&2; exit 1; }
 
-# --- preconditions -----------------------------------------------------------
-command -v docker >/dev/null 2>&1 || fail "docker is not installed.
-  macOS: brew install --cask docker (or Docker Desktop)
-  Linux: https://docs.docker.com/engine/install/"
+# --- platform checks ---------------------------------------------------------
+# Everything here runs before the first write, so an unsupported machine is left
+# untouched. macOS and Linux share the same code paths; only the hints differ.
+OS=$(uname -s 2>/dev/null || true)
+ARCH=$(uname -m 2>/dev/null || true)
 
-docker info >/dev/null 2>&1 || fail "the Docker daemon is not running. Start Docker Desktop (or: sudo systemctl start docker) and rerun."
+case "$OS" in
+  Darwin|Linux) ;;
+  *) fail "unsupported operating system: ${OS:-unknown}
+  ocs supports macOS and Linux only. On Windows, use WSL2 (which reports Linux)." ;;
+esac
+
+case "$ARCH" in
+  x86_64|amd64|arm64|aarch64) ;;
+  *) fail "unsupported CPU architecture: ${ARCH:-unknown}
+  opencode publishes linux/amd64 and linux/arm64 images only." ;;
+esac
+
+# The launcher uses bash arrays, available since bash 3.1. macOS ships 3.2,
+# which works; this only rejects something genuinely older or non-bash.
+if [ -z "${BASH_VERSION:-}" ]; then
+  fail "run the installer with bash, not sh: bash scripts/install.sh"
+fi
+BASH_MAJOR=${BASH_VERSION%%.*}
+BASH_REST=${BASH_VERSION#*.}
+BASH_MINOR=${BASH_REST%%.*}
+if [ "$BASH_MAJOR" -lt 3 ] || { [ "$BASH_MAJOR" -eq 3 ] && [ "$BASH_MINOR" -lt 1 ]; }; then
+  fail "bash 3.1 or newer is required (found $BASH_VERSION)"
+fi
+
+if ! command -v docker >/dev/null 2>&1; then
+  case "$OS" in
+    Darwin) fail "docker is not installed.
+  Install Docker Desktop: https://docs.docker.com/desktop/install/mac-install/" ;;
+    *) fail "docker is not installed.
+  Install Docker Engine: https://docs.docker.com/engine/install/" ;;
+  esac
+fi
+
+if ! docker info >/dev/null 2>&1; then
+  case "$OS" in
+    Darwin) fail "the Docker daemon is not running. Open Docker Desktop and rerun." ;;
+    *) fail "the Docker daemon is not running or not accessible.
+  Start it: sudo systemctl start docker
+  Permission denied on the socket? Add your user to the docker group:
+    sudo usermod -aG docker \$USER   (then log out and back in)" ;;
+  esac
+fi
+
+if [ "$(docker info --format '{{.OSType}}' 2>/dev/null || true)" = "windows" ]; then
+  fail "Docker is set to Windows containers. Switch Docker Desktop to Linux containers and rerun."
+fi
+
+say "Platform: $OS/$ARCH, bash $BASH_VERSION, Docker $(docker version --format '{{.Server.Version}}' 2>/dev/null || printf '?')"
 
 # --- files -------------------------------------------------------------------
 say "Installing launcher to $BIN_DIR/ocs"

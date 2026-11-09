@@ -15,9 +15,15 @@ the user's shells.
 
 ## Requirements
 
-- Docker Desktop or Docker Engine, running.
-- macOS or Linux with bash.
+- **macOS or Linux** (on Windows, use WSL2). Other systems are rejected.
+- **x86_64/amd64 or arm64/aarch64.** opencode publishes no other Linux builds.
+- **bash 3.1+.** macOS's built-in bash 3.2 works; no newer bash needed.
+- **Docker Desktop or Docker Engine, running, in Linux-container mode.**
 - Host opencode is optional; without it the sandbox has no logins.
+
+The installer checks all of the above before writing any file and exits with an
+OS-specific hint when something is missing, so an unsupported machine is left
+untouched.
 
 ## Install
 
@@ -27,7 +33,7 @@ Run the installer from this skill directory:
 bash scripts/install.sh
 ```
 
-It does four things:
+It checks the platform first (see Requirements), then does four things:
 
 1. Copies the launcher to `~/.local/bin/ocs`.
 2. Copies the Docker build context to `~/.config/ocs`.
@@ -81,6 +87,13 @@ ocs uninstall --keep-image # keep the ~465 MB image for later
 
 **`docker: command not found`** — install Docker Desktop on macOS or Docker
 Engine on Linux, then rerun the installer.
+
+**`unsupported operating system`** — only macOS and Linux are supported. On
+Windows, run the skill inside WSL2 (it reports Linux).
+
+**`unsupported CPU architecture`** — opencode ships linux/amd64 and linux/arm64
+builds only. Apple Silicon, Intel, and common ARM servers are fine; other
+architectures are not.
 
 **`Cannot connect to the Docker daemon`** — Docker is installed but not running.
 Start Docker Desktop, or `sudo systemctl start docker`, then rerun.

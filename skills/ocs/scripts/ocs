@@ -40,7 +40,7 @@ case "${1:-}" in
   uninstall|rm)
     shift
     if [ -x "$CONFIG_DIR/uninstall.sh" ]; then
-      exec "$CONFIG_DIR/uninstall.sh" "$@"
+      exec "$CONFIG_DIR/uninstall.sh" ${1+"$@"}
     fi
     printf 'ocs: uninstall script not found at %s\n' "$CONFIG_DIR/uninstall.sh" >&2
     exit 1
@@ -60,7 +60,7 @@ docker create "${TTY_FLAGS[@]}" --name "$NAME" \
   --cap-drop ALL \
   --security-opt no-new-privileges \
   --pids-limit 512 --memory 4g --cpus 2 \
-  "$IMAGE" "${@}" >/dev/null
+  "$IMAGE" ${1+"$@"} >/dev/null
 
 STAGE=$(mktemp -d)
 cleanup() { docker rm -f "$NAME" >/dev/null 2>&1 || true; rm -rf "$STAGE"; }

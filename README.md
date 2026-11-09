@@ -48,7 +48,12 @@ Each launch creates a fresh container with `--cap-drop ALL`, `no-new-privileges`
 
 ## Requirements
 
-Docker Desktop or Docker Engine, running. macOS or Linux. The host does not need opencode installed, but without it the sandbox starts with no logins.
+- macOS or Linux (on Windows, use WSL2).
+- x86_64/amd64 or arm64/aarch64.
+- bash 3.1+ (macOS's built-in 3.2 is enough).
+- Docker Desktop or Docker Engine, running, in Linux-container mode.
+
+The installer validates all of this before writing anything and exits with an OS-specific hint if a requirement is missing. The host does not need opencode installed, but without it the sandbox starts with no logins.
 
 ## How it works
 
